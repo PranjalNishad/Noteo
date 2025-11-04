@@ -31,7 +31,7 @@ export default function Header({ theme, setTheme, THEMES, searchTerm, setSearchT
               {Object.entries(THEMES).map(([key,val]) => <option key={key} value={key}>{val.name}</option>)}
             </select>
 
-            <button onClick={() => setIsCreating(true)} className="px-2 h-[35px] w-[80px] sm:px-2 py-1 rounded-lg font-semibold btn-accent shadow cursor-pointer text-sm sm:text-base">➕ New</button>
+            <button onClick={() => setIsCreating(true)} className="px-2 h-[35px] w-20 sm:px-2 py-1 rounded-lg font-semibold btn-accent shadow cursor-pointer text-sm sm:text-base">➕ New</button>
           </div>
         </div>
       </div>
