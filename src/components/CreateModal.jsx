@@ -11,19 +11,17 @@ export default function CreateModal({
   handleCreateNote,
   modalRef,
 }) {
-  const { transcript, listening, resetTranscript } = useSpeechRecognition();
+  const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } =
+    useSpeechRecognition();
 
-  // Keep track of whether mic mode is on manually
   const [micActive, setMicActive] = React.useState(false);
 
-  // Update note content when transcript changes
   React.useEffect(() => {
     if (micActive && transcript) {
       setNewNote((prev) => ({ ...prev, content: transcript }));
     }
   }, [transcript, micActive, setNewNote]);
 
-  // Stop listening automatically when modal closes
   React.useEffect(() => {
     if (!isCreating) {
       SpeechRecognition.stopListening();
@@ -34,12 +32,11 @@ export default function CreateModal({
   if (!isCreating) return null;
 
   const toggleMic = () => {
+    if (!browserSupportsSpeechRecognition) return;
     if (micActive) {
-      // Turn off mic
       SpeechRecognition.stopListening();
       setMicActive(false);
     } else {
-      // Turn on mic
       resetTranscript();
       SpeechRecognition.startListening({ continuous: true, language: "en-IN" });
       setMicActive(true);
@@ -92,7 +89,7 @@ export default function CreateModal({
             </label>
           </div>
 
-          {/* Content + Mic Button */}
+          {/* Content + Mic */}
           <div className="relative">
             <textarea
               value={newNote.content}
@@ -102,32 +99,46 @@ export default function CreateModal({
               aria-label="Note content"
             />
 
-            {/* 🎤 Mic Toggle Button */}
+            {/* 🎤 Mic Button */}
             <button
               onClick={toggleMic}
-              title={micActive ? "Stop voice input" : "Start voice input"}
+              disabled={!browserSupportsSpeechRecognition}
+              title={
+                !browserSupportsSpeechRecognition
+                  ? "Speech recognition not supported on this device"
+                  : micActive
+                  ? "Stop voice input"
+                  : "Start voice input"
+              }
               style={{
                 position: "absolute",
                 right: "15px",
                 bottom: "15px",
                 backgroundColor: micActive
-                  ? "rgba(14,165,233,0.8)" // cyan-blue glow when active
-                  : "rgba(255,255,255,0.15)", // transparent glass when off
-                color: "white",
+                  ? "rgba(14,165,233,0.8)" // Active (blue glow)
+                  : "rgba(255,255,255,0.15)", // Transparent glass (off)
+                color: browserSupportsSpeechRecognition ? "white" : "rgba(255,255,255,0.4)",
                 border: "1px solid rgba(255,255,255,0.25)",
                 borderRadius: "50%",
                 width: "38px",
                 height: "38px",
-                cursor: "pointer",
+                cursor: browserSupportsSpeechRecognition ? "pointer" : "not-allowed",
                 backdropFilter: "blur(8px)",
                 boxShadow: micActive
-                  ? "0 0 10px rgba(56,189,248,0.8)"
+                  ? "0 0 10px rgba(56,189,248,0.9)"
                   : "0 0 6px rgba(255,255,255,0.2)",
                 transition: "all 0.25s ease",
               }}
             >
               🎤
             </button>
+
+            {/* Unsupported Message */}
+            {!browserSupportsSpeechRecognition && (
+              <p className="text-xs text-rose-400 mt-2">
+                ⚠️ Voice input isn’t supported on this browser/device.
+              </p>
+            )}
           </div>
 
           {/* Tags */}
@@ -180,7 +191,7 @@ export default function CreateModal({
             </div>
           </div>
 
-          {/* Buttons */}
+          {/* Footer Buttons */}
           <div className="flex justify-end gap-3 pt-2">
             <button
               onClick={() => {
