@@ -19,7 +19,6 @@ const THEMES = {
   amber: { name: "Amber Gold 💛", bg1: "#291800", bg2: "#422006", accent: "#f59e0b", accent2: "#fbbf24" },
   pink: { name: "Pink Glow 🩷", bg1: "#2d0b26", bg2: "#4b164c", accent: "#ec4899", accent2: "#f472b6" },
   gray: { name: "Steel Gray 🩶", bg1: "#0f172a", bg2: "#1e293b", accent: "#94a3b8", accent2: "#cbd5e1" },
-  white: { name: "White ✨", bg1: "#ffffff", bg2: "#f8fafc", accent: "#2563eb", accent2: "#60a5fa" },
 };
 
 const THEME_KEY = "nk-theme";
