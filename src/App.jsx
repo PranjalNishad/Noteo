@@ -3,7 +3,7 @@ import Header from "./components/Header";
 import NoteCard from "./components/NoteCard";
 import CreateModal from "./components/CreateModal";
 
-/* small helper — same palette as before */
+/* small helper palette */
 const colorFromId = (id) => {
   const palette = ["#06b6d4","#60a5fa","#34d399","#f59e0b","#f97316","#a78bfa","#fb7185"];
   const sum = String(id).split("").reduce((s,c)=>s+c.charCodeAt(0),0);
@@ -19,6 +19,7 @@ const THEMES = {
   amber: { name: "Amber Gold 💛", bg1: "#291800", bg2: "#422006", accent: "#f59e0b", accent2: "#fbbf24" },
   pink: { name: "Pink Glow 🩷", bg1: "#2d0b26", bg2: "#4b164c", accent: "#ec4899", accent2: "#f472b6" },
   gray: { name: "Steel Gray 🩶", bg1: "#0f172a", bg2: "#1e293b", accent: "#94a3b8", accent2: "#cbd5e1" },
+  white: { name: "White ✨", bg1: "#ffffff", bg2: "#f8fafc", accent: "#2563eb", accent2: "#60a5fa" },
 };
 
 const THEME_KEY = "nk-theme";
@@ -35,7 +36,6 @@ export default function NoteKeeper() {
 
   const modalRef = useRef(null);
 
-  // apply theme variables to root
   useEffect(() => {
     const t = THEMES[theme] || THEMES.blue;
     const r = document.documentElement;
@@ -46,19 +46,16 @@ export default function NoteKeeper() {
     localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
 
-  // persist notes
-  useEffect(() => {
-    localStorage.setItem("notes", JSON.stringify(notes));
-  }, [notes]);
+  useEffect(() => { localStorage.setItem("notes", JSON.stringify(notes)); }, [notes]);
 
   const filteredNotes = useMemo(() => {
     const q = (searchTerm || "").toLowerCase().trim();
     let list = notes;
     if (q) {
-      list = notes.filter(n => {
+      list = list.filter(n => {
         const tags = (n.tags || []).join(" ");
-        return (n.title || "").toLowerCase().includes(q) ||
-               (n.content || "").toLowerCase().includes(q) ||
+        return (n.title||"").toLowerCase().includes(q) ||
+               (n.content||"").toLowerCase().includes(q) ||
                tags.toLowerCase().includes(q);
       });
     }
@@ -70,10 +67,11 @@ export default function NoteKeeper() {
   }, [notes, searchTerm]);
 
   const formatDate = (iso) => {
-    try { return new Date(iso).toLocaleString(); } catch { return iso; }
+    try { const d = new Date(iso); return d.toLocaleDateString() + " " + d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); }
+    catch { return iso; }
   };
 
-  // files -> base64
+  // Files -> base64 storage in newNote.attachments
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files || []);
     files.forEach(file => {
@@ -94,18 +92,23 @@ export default function NoteKeeper() {
       id: Date.now(),
       title: newNote.title.trim() || "Untitled Note",
       content: newNote.content,
-      tags: (newNote.tags || "").split(",").map(t=>t.trim()).filter(Boolean),
+      tags: (newNote.tags || "").split(",").map(t => t.trim()).filter(Boolean),
       pinned: !!newNote.pinned,
       attachments: newNote.attachments,
-      createdAt: new Date().toISOString(),
+      createdAt: new Date().toISOString()
     };
     setNotes(s => [note, ...s]);
     setNewNote({ title: "", content: "", tags: "", pinned: false, attachments: [] });
     setIsCreating(false);
   };
 
-  const handleDeleteNote = (id) => setNotes(s => s.filter(n => n.id !== id));
+  const handleDeleteNote = (id) => { if (window.confirm("Delete this note?")) setNotes(s => s.filter(n => n.id !== id)); };
   const togglePin = (id) => setNotes(s => s.map(n => n.id === id ? { ...n, pinned: !n.pinned } : n));
+
+  // Update handler used by NoteCard edit save
+  const handleUpdateNote = (id, updatedNote) => {
+    setNotes(s => s.map(n => n.id === id ? { ...n, ...updatedNote } : n));
+  };
 
   return (
     <main className="nk-bg min-h-screen text-white">
@@ -119,7 +122,6 @@ export default function NoteKeeper() {
           setIsCreating={setIsCreating}
         />
 
-        {/* modal */}
         <CreateModal
           isCreating={isCreating}
           setIsCreating={setIsCreating}
@@ -131,7 +133,6 @@ export default function NoteKeeper() {
           modalRef={modalRef}
         />
 
-        {/* notes grid */}
         <section className="mt-6">
           {filteredNotes.length === 0 ? (
             <div className="mt-20 text-center text-white/70">
@@ -148,6 +149,7 @@ export default function NoteKeeper() {
                   handleDeleteNote={handleDeleteNote}
                   formatDate={formatDate}
                   colorFromId={colorFromId}
+                  onUpdate={handleUpdateNote}
                 />
               ))}
             </div>
