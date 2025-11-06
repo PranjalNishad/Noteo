@@ -1,6 +1,17 @@
 import React, { useState } from "react";
 
-export default function NoteCard({ note, togglePin, handleDeleteNote, formatDate, colorFromId, onUpdate }) {
+/**
+ * NoteCard
+ * props:
+ *  - note
+ *  - togglePin(id)
+ *  - handleDeleteNote(id)
+ *  - formatDate(iso)
+ *  - colorFromId(id)
+ *  - onUpdate(id, updatedNote)  // called by Save inside the card
+ *  - onOpen(note)               // called when user taps the card (for full view)
+ */
+export default function NoteCard({ note, togglePin, handleDeleteNote, formatDate, colorFromId, onUpdate, onOpen }) {
   const accent = colorFromId(note.id);
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(note.title || "");
@@ -15,7 +26,18 @@ export default function NoteCard({ note, togglePin, handleDeleteNote, formatDate
   };
 
   return (
-    <article className="relative rounded-xl p-4 transition shadow-lg hover:-translate-y-1" role="article" aria-label={note.title || "Note"} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
+    <article
+      className="relative rounded-xl p-4 transition shadow-lg hover:-translate-y-1 cursor-pointer"
+      role="article"
+      aria-label={note.title || "Note"}
+      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}
+      onClick={(e) => {
+        // avoid opening when clicking interactive controls (buttons, links, inputs)
+        const tag = (e.target && e.target.tagName) || "";
+        if (["BUTTON","A","INPUT","TEXTAREA","SVG","PATH","LABEL"].includes(tag)) return;
+        if (typeof onOpen === "function") onOpen(note);
+      }}
+    >
       <div className="absolute left-0 top-0 bottom-0 w-1.5 rounded-l-xl" style={{ background: `linear-gradient(180deg, ${accent}, rgba(255,255,255,0.06))` }} />
 
       <div className="flex justify-between items-start mb-2">
@@ -28,7 +50,7 @@ export default function NoteCard({ note, togglePin, handleDeleteNote, formatDate
 
           {(note.tags || []).length > 0 && (
             <div className="flex flex-wrap gap-2 mt-2">
-              {(note.tags || []).map((t) => <span key={t} className="text-xs px-2 py-0.5 rounded-md bg-white/6 text-white/90">{t}</span>)}
+              {(note.tags || []).map(t => <span key={t} className="text-xs px-2 py-0.5 rounded-md bg-white/6 text-white/90">{t}</span>)}
             </div>
           )}
         </div>
@@ -41,9 +63,9 @@ export default function NoteCard({ note, togglePin, handleDeleteNote, formatDate
             </>
           ) : (
             <>
-              <button onClick={startEdit} className="px-2 py-1 rounded-md text-sm bg-white/5 hover:bg-white/10 cursor-pointer" title="Edit">✏</button>
-              <button onClick={() => togglePin(note.id)} className="px-2 py-1 rounded-md text-sm bg-white/5 hover:bg-white/10 cursor-pointer" title={note.pinned ? "Unpin" : "Pin"}>📌</button>
-              <button onClick={() => handleDeleteNote(note.id)} className="text-white/70 hover:text-rose-400 cursor-pointer" title="Delete">🗑</button>
+              <button onClick={(e) => { e.stopPropagation(); startEdit(); }} className="px-2 py-1 rounded-md text-sm bg-white/5 hover:bg-white/10 cursor-pointer" title="Edit">✏</button>
+              <button onClick={(e) => { e.stopPropagation(); togglePin(note.id); }} className="px-2 py-1 rounded-md text-sm bg-white/5 hover:bg-white/10 cursor-pointer" title={note.pinned ? "Unpin" : "Pin"}>📌</button>
+              <button onClick={(e) => { e.stopPropagation(); handleDeleteNote(note.id); }} className="text-white/70 hover:text-rose-400 cursor-pointer" title="Delete">🗑</button>
             </>
           )}
         </div>
@@ -61,11 +83,11 @@ export default function NoteCard({ note, togglePin, handleDeleteNote, formatDate
             <div key={i} className="flex items-center justify-between bg-white/5 px-3 py-2 rounded-md text-sm border border-white/10 hover:bg-white/10 transition">
               <div className="flex items-center gap-3 min-w-0">
                 {file.type?.startsWith("image/") ? (
-                  <a href={file.data} target="_blank" rel="noreferrer" className="cursor-pointer">
+                  <a href={file.data} target="_blank" rel="noreferrer" onClick={(e)=>e.stopPropagation()} className="cursor-pointer">
                     <img src={file.data} alt={file.name} className="w-16 h-10 object-cover rounded-md border border-white/10" />
                   </a>
                 ) : (
-                  <a href={file.data} download={file.name} className="text-accent underline text-sm cursor-pointer" target="_blank" rel="noreferrer">📎 {file.name}</a>
+                  <a href={file.data} download={file.name} onClick={(e)=>e.stopPropagation()} className="text-accent underline text-sm cursor-pointer" target="_blank" rel="noreferrer">📎 {file.name}</a>
                 )}
                 <span className="truncate max-w-[60%]">{file.name}</span>
               </div>
