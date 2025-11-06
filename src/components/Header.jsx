@@ -7,7 +7,7 @@ export default function Header({ theme, setTheme, THEMES, searchTerm, setSearchT
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl glass-light flex items-center justify-center icon-shadow text-lg sm:text-xl">📝</div>
           <div>
-            <div className="text-lg sm:text-2xl font-bold" style={{ color: "var(--accent)" }}>NoteKeeper</div>
+            <div className="text-lg sm:text-2xl font-bold" style={{ color: "var(--accent)" }}>NOTEO</div>
             <div className="text-xs sm:text-sm text-white/70">Your local notes</div>
           </div>
         </div>
